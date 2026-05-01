@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Королевство Пижам и Пледов - Каталог лучших сериалов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            margin: auto;
+            display: block;
+            max-width: 95%;
+            max-height: 95%;
+            margin-top: 2.5%;
+            border-radius: 15px;
+            box-shadow: 0 0 60px rgba(255,255,255,0.4);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 25px;
+            right: 40px;
+            color: white;
+            font-size: 45px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .close-modal:hover {
+            color: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+        }
+
+        h1 {
+            font-size: 3.2em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .search-controls {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 50px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 25px 18px 60px;
+            font-size: 17px;
+            border: 3px solid #e8ecf4;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            width: 22px;
+            height: 22px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 14px 28px;
+            border: 2px solid transparent;
+            background: white;
+            color: #333;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #5a67d8;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+/* ВЕРТИКАЛЬНЫЕ ПОСТЕРЫ + НОВАЯ СЕТКА */
+        .series-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 35px;
+            margin-bottom: 50px;
+        }
+
+        .series-card {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            transition: all 0.6s ease;
+            opacity: 0;
+            transform: translateY(60px) scale(0.95);
+            cursor: pointer;
+            min-height: 650px; /* Фиксированная высота для единообразия */
+        }
+
+        .series-card.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .series-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+        }
+
+        /* ВЕРТИКАЛЬНЫЕ ПОСТЕРЫ (соотношение 2:3) */
+        .series-poster {
+            width: 100%;
+            height: 420px; /* Высокий вертикальный постер */
+            object-fit: cover;
+            position: relative;
+            filter: brightness(0.95);
+            transition: 0.4s ease;
+        }
+
+        .series-card:hover .series-poster {
+            filter: brightness(1.1) contrast(1.05);
+        }
+
+        .series-info {
+            padding: 35px 30px 30px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .series-title {
+            font-size: 1.7em;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: #1a202c;
+            line-height: 1.3;
+        }
+
+        .series-genre {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        .series-description {
+            color: #4a5568;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-size: 15px;
+            flex-grow: 1;
+        }
+
+        .series-rating {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 800;
+            color: #f6ad55;
+            font-size: 1.4em;
+            margin-top: auto;
+        }
+
+        .no-results {
+            text-align: center;
+            grid-column: 1 / -1;
+            color: white;
+            font-size: 2em;
+            padding: 100px 40px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .series-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 25px;
+            }
+            
+            .series-card {
+                height: 580px;
+            }
+            
+            .series-poster {
+                height: 360px;
+            }
+            
+            h1 {
+                font-size: 2.4em;
+            }
+        }
+        .footer {
+    text-align: center;
+    color: white;
+    padding: 25px 15px;
+    margin-top: 40px;
+    font-size: 14px;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+}
+body.dark {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    color: #eee;
+}
+
+body.dark .search-controls {
+    background: rgba(30, 30, 40, 0.9);
+}
+
+body.dark .series-card {
+    background: rgba(30, 30, 40, 0.95);
+    color: #eee;
+}
+
+body.dark .series-title {
+    color: #fff;
+}
+
+body.dark .series-description {
+    color: #cbd5e0;
+}
+.suggestions {
+    position: absolute;
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-top: 5px;
+    overflow: hidden;
+    z-index: 999;
+}
+
+.suggestion-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.suggestion-item:hover {
+    background: #667eea;
+    color: white;
+}
+
+.search-box {
+    position: relative;
+}
+.scroll-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    background: #667eea;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    transition: 0.3s;
+    z-index: 1000;
+}
+
+.scroll-top:hover {
+    transform: translateY(-5px);
+    background: #5a67d8;
+}
+.age-badge {
+    margin-left: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+
+/* 🟢 0+ */
+.age-green {
+    background: #38a169;
+}
+
+/* 🟡 6+ / 12+ */
+.age-yellow {
+    background: #d69e2e;
+}
+
+/* 🔴 16+ / 18+ */
+.age-red {
+    background: #e53e3e;
+}
+
+/* ⚪ если нет данных */
+.age-default {
+    background: #718096;
+}
+    </style>
+</head>
+<body>
+    <div id="posterModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+    <div class="container">
+        <header>
+            <h1>🎬 Королевство Пижам и Пледов</h1>
+            <p>Лучшая подборка сериалов в одном месте!</p>
+        </header>
+
+        <div class="search-controls">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+</svg>
+                <input type="text" class="search-input" id="searchInput" placeholder="Найти сериал...">
+                <div id="suggestions" class="suggestions"></div>
+            </div>
+            <div class="filters" id="filters"></div>
+            <button id="themeToggle" class="filter-btn">🌙 Темная тема</button>
+        </div>
+
+        <div class="series-grid" id="seriesGrid"></div>
+    </div>
+    <button id="scrollTopBtn" class="scroll-top">⬆</button>
+
+    <script>
+        const seriesData = [
+            {
+                id: 1,
+                title: "Атака титанов (2013-2023)",
+                genre: "🍙Аниме",
+                poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x",
+                posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x",
+                description: "Человечество прячется за стенами от гигантских титанов. Эрен Йегер жаждет мести и свободы.",
+                rating: 9.1,
+                age: "18+"
+            },
+            {
+                id: 2,
+                title: "Во все тяжкие (2008-2013)",
+                genre: "🔎Криминал",
+                poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x",
+                posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x",
+                description: "Учитель химии превращается в наркобарона, чтобы обеспечить семью после диагноза рака.",
+                rating: 9.5,
+                age: "18+"
+            },
+            {
+                id: 3,
+                title: "Очень странные дела (2016-2025)",
+                genre: "🎃Ужасы",
+                poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x",
+                posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x",
+                description: "Группа детей сталкивается с паранормальными явлениями и правительственными экспериментами в маленьком городке.",
+                rating: 8.6,
+                age: "16+"
+            },
+
+            {
+                id: 4,
+                title: "Игра престолов (2011-2019)",
+                genre: "🏹Фэнтези",
+                poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x",
+                posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x",
+                description: "Битва за Железный трон. Семьи Вестероса против древнего зла Севера.",
+                rating: 9.1,
+                age: "18+"
+            },
+            {
+                id: 5,
+                title: "Острые козырьки (2013-2022)",
+                genre: "🌎Приключения",
+                poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x",
+                posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x",
+                description: "Томас Шелби и банда Острые Козырьки захватывают Бирмингем после Первой Мировой войны.",
+                rating: 8.6,
+                age: "18+"
+            },
+                {
+                    id:6,
+                    title: "Звездные Войны.Дарт Мол: Повелитель теней (2026)",
+                    genre: "🚀Фантастика",
+                    poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x",
+                    posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x",
+                    description: "После падения Дарт Мол возвращается из тени чтобы захватить власть в криминальном мире галактики.",
+                    rating: 8.5,
+                    age: "18+"
+                },
+                {
+                    id: 7,
+                    title: "Сорвиголова: Рожденный заново (2025-...)",
+                    genre: "🚀Фантастика",
+                    poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x",
+                    posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x",
+                    description: "После трагедии Сорвиголова пытается начать новую жизнь, но прошлое и враги вновь втягивают его в темную борьбу за справедливость на улицах города.",
+                    rating: 8.0,
+                    age: "18+"
+                },
+                {
+                    id: 8,
+                    title: "Ателье колдовских колпаков (2026)",
+                    genre: "🍙Аниме",
+                    poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x",
+                    posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x",
+                    description: "Обычная девочка попадает в мир магии, где тайны колдовства скрыты от посторонних, и начинает путь ученицы, чтобы раскрыть силу и изменить свою судьбу.",
+                    rating: 8.6,
+                    age: "18+"
+                },
+                {
+                    id: 9,
+                    title: "One Piece. Большой куш (2023-...)",
+                    genre: "🌎Приключения",
+                    poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x",
+                    posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x",
+                    description: "Юный пират Монки Д. Луффи отправляется в опасное путешествие по морям, чтобы собрать команду, найти легендарное сокровище и стать Королем пиратов.",
+                    rating: 8.3,
+                    age: "18+"
+                },
+                {
+                    id: 10,
+                    title: "Рыцарь семи королевств (2026-...)",
+                    genre: "🏹Фэнтези",
+                    poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x",
+                    posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x",
+                    description: "Странствующий рыцарь Дунк и его юный оруженосец отправляются в путь по Вестеросу, где честь, долг и скрытые тайны могут изменить судьбу целых королевств.",
+                    rating: 8.8,
+                    age: "18+"
+                }
+        ];
+
+        const genres = [...new Set(seriesData.map(s => s.genre))];
+
+        class SeriesApp {
+            constructor() {
+                this.currentFilter = 'all';
+                this.searchTerm = '';
+                this.modal = document.getElementById('posterModal');
+                this.modalImage = document.getElementById('modalImage');
+                this.init();
+            }
+
+            init() {
+                this.renderFilters();
+                this.renderSeries();
+                this.bindEvents();
+            }
+
+            renderFilters() {
+                const container = document.getElementById('filters');
+                container.innerHTML = '<button class="filter-btn active all" data-genre="all">🎭 Все</button>';
+                genres.forEach(genre => {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-btn';
+                    btn.dataset.genre = genre;
+                    btn.textContent = genre;
+                    container.appendChild(btn);
+                });
+            }
+
+            renderSeries() {
+                const grid = document.getElementById('seriesGrid');
+                const filtered = this.getFilteredSeries();
+                
+                if (!filtered.length) {
+                    grid.innerHTML = '<div class="no-results">❌ Сериалы не найдены</div>';
+                    return;
+                }
+
+                grid.innerHTML = filtered.map(series => `
+                    <div class="series-card" data-id="${series.id}">
+    <img src="${series.poster}" alt="${series.title}" class="series-poster" data-high-res="${series.posterHigh}">
+    
+    <div class="series-info">
+        <h3 class="series-title">${series.title}</h3>
+        <span class="series-genre">${series.genre}</span>
+
+        <div class="series-description">
+            <p>${series.description}</p>
+        </div>
+
+        <div class="series-rating">⭐ ${series.rating} (IMDb)
+            <span class="age-badge ${this.getAgeClass(series.age)}">${series.age}</span>
+        </div>
+    </div>
+</div>
+                `).join('');
+
+                document.querySelectorAll('.series-card').forEach((card, i) => {
+                    setTimeout(() => card.classList.add('visible'), i * 200);
+                });
+            }
+
+            getFilteredSeries() {
+                return seriesData.filter(series => {
+                    const genreMatch = this.currentFilter === 'all' || series.genre === this.currentFilter;
+                    const searchMatch = !this.searchTerm || 
+                        series.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                        series.description.toLowerCase().includes(this.searchTerm.toLowerCase());
+                    return genreMatch && searchMatch;
+                });
+            }
+
+            bindEvents() {
+                const scrollBtn = document.getElementById('scrollTopBtn');
+
+// показать/скрыть кнопку при прокрутке
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+        scrollBtn.style.display = 'flex';
+    } else {
+        scrollBtn.style.display = 'none';
+    }
+});
+
+// клик → вверх к поиску
+scrollBtn.addEventListener('click', () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+                document.addEventListener('click', (e) => {
+    const card = e.target.closest('.series-card');
+
+    if (card) {
+        const id = card.dataset.id;
+        this.openSeries(id);
+    }
+});
+                this.suggestions = document.getElementById('suggestions');
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    this.searchTerm = e.target.value.trim().toLowerCase();
+
+    this.renderSeries();
+    this.showSuggestions(this.searchTerm);
+});
+                document.getElementById('filters').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('filter-btn')) {
+                        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.dataset.genre;
+                        this.renderSeries();
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('series-poster')) {
+                        this.openModal(e.target.dataset.highRes);
+                    }
+                });
+
+                this.modal.addEventListener('click', (e) => {
+                    if (e.target === this.modal || e.target.classList.contains('close-modal')) {
+                        this.closeModal();
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.modal.style.display === 'block') {
+                        this.closeModal();
+                    }
+                });
+            }
+getAgeClass(age) {
+    if (!age) return "";
+
+    if (age.includes("0")) return "age-green";
+    if (age.includes("6") || age.includes("12")) return "age-yellow";
+    if (age.includes("16") || age.includes("18")) return "age-red";
+
+    return "age-default";
+}
+
+            openModal(src) {
+                this.modalImage.src = src;
+                this.modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeModal() {
+                this.modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        const themeBtn = document.getElementById('themeToggle');
+
+themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+
+    if (document.body.classList.contains('dark')) {
+        themeBtn.textContent = '☀️ Светлая тема';
+    } else {
+        themeBtn.textContent = '🌙 Темная тема';
+    }
+});
+
+        document.addEventListener('DOMContentLoaded', () => new SeriesApp());
+    </script>
+    <footer class="footer">
+    <p>© 2026 Королевство Пижам и Пледов(The Kingdom of Pajamas and Blankets). Все права защищены.</p>
+</footer>
+</body>
+</html>
