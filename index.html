@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Королевство Пижам и Пледов — каталог сериалов</title>
+    <title>Королевство Пижам и Пледов — избранное и профиль</title>
     <style>
         * {
             margin: 0;
@@ -17,695 +17,503 @@
             background: linear-gradient(135deg, #1a1c2c 0%, #2a1f3a 100%);
             min-height: 100vh;
             color: #1e1f2c;
-            transition: background 0.2s;
+            transition: background 0.2s ease, color 0.2s;
         }
 
         body.dark {
             background: linear-gradient(135deg, #0a0b14 0%, #121026 100%);
         }
 
-        /* Контейнер — компактные отступы на телефоне */
+        /* Layout с боковой панелью */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Боковая панель — профиль и избранное */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100vh;
+            background: rgba(25, 27, 45, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 1500;
+            transition: left 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 215, 120, 0.3);
+            overflow-y: auto;
+        }
+        body.dark .sidebar {
+            background: rgba(10, 12, 25, 0.98);
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 200, 100, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sidebar-header h3 {
+            color: #FFD966;
+            font-weight: 700;
+        }
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .close-sidebar:hover { background: rgba(255,255,255,0.2); }
+        
+        /* Профиль и аватар */
+        .profile-area {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid rgba(255,200,100,0.2);
+        }
+        .avatar-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #2d2f48;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 3px solid #F5B041;
+            cursor: pointer;
+        }
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .upload-label {
+            margin-top: 8px;
+            background: #F5B041;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #1e1f2c;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #avatarInput {
+            display: none;
+        }
+        .user-name-input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 60px;
+            border: none;
+            background: #2c2f48;
+            color: white;
+            text-align: center;
+            font-weight: 600;
+        }
+        body.dark .user-name-input { background: #1b1e32; }
+        
+        /* Избранное в сайдбаре */
+        .favorites-list {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .fav-title {
+            color: #FFD966;
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .fav-item {
+            background: rgba(255,255,255,0.08);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .fav-item:hover { background: rgba(245,176,65,0.2); transform: translateX(4px); }
+        .fav-poster-small {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .fav-info {
+            flex: 1;
+            color: #f0f0f0;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .remove-fav {
+            background: rgba(220,60,60,0.7);
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+        .empty-fav {
+            color: #aaa;
+            text-align: center;
+            padding: 30px 0;
+            font-style: italic;
+        }
+        
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            transition: margin-left 0.3s;
+            width: 100%;
+        }
         .container {
             max-width: 1600px;
             margin: 0 auto;
             padding: 12px 16px 32px;
         }
-
-        /* Шапка */
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 24px;
-            padding: 16px 8px 8px;
-        }
-
-        h1 {
-            font-size: 1.9rem;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            background: linear-gradient(120deg, #FFE6B0, #FFB347);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 8px;
-            text-shadow: none;
-        }
-
-        .subhead {
-            font-size: 0.9rem;
-            opacity: 0.85;
-            font-weight: 500;
-        }
-
-        /* Поисковая панель — адаптивная, без лишних отступов */
-        .search-controls {
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(12px);
-            border-radius: 32px;
-            padding: 20px 18px;
-            margin-bottom: 30px;
-            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.2);
-        }
-
-        body.dark .search-controls {
-            background: rgba(28, 30, 48, 0.96);
-        }
-
-        .search-box {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 18px 14px 48px;
-            font-size: 16px; /* чтобы на iOS не масштабировалось */
-            border: 1.5px solid #e2e8f0;
-            border-radius: 60px;
-            outline: none;
-            background: white;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        body.dark .search-input {
-            background: #1f2137;
-            border-color: #343a55;
-            color: #f0f3ff;
-        }
-
-        .search-input:focus {
-            border-color: #8b74f0;
-            box-shadow: 0 0 0 3px rgba(139, 116, 240, 0.3);
-        }
-
+        header { text-align: center; color: white; margin-bottom: 24px; padding: 16px 8px 8px; }
+        h1 { font-size: 1.9rem; font-weight: 800; background: linear-gradient(120deg, #FFE6B0, #FFB347); background-clip: text; -webkit-background-clip: text; color: transparent; margin-bottom: 8px; }
+        .subhead { font-size: 0.9rem; opacity: 0.85; }
+        .search-controls { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); border-radius: 42px; padding: 20px 22px; margin-bottom: 30px; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.25); }
+        body.dark .search-controls { background: rgba(28, 30, 48, 0.96); }
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-input { width: 100%; padding: 16px 22px 16px 52px; font-size: 1rem; background: #fff; border: 2px solid rgba(235,240,255,0.8); border-radius: 60px; outline: none; transition: 0.3s; color: #1f2a44; }
+        body.dark .search-input { background: #1b1e32; border-color: #353b5a; color: #f0f3fc; }
+        .search-input:focus { box-shadow: 0 0 0 4px rgba(245,176,65,0.3); transform: scale(1.01); }
         .search-icon {
             position: absolute;
-            left: 18px;
+            left: 20px;
             top: 50%;
             transform: translateY(-50%);
             width: 20px;
             height: 20px;
-            color: #8a8f9e;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%23b59f6b" stroke-width="2"><circle cx="10.5" cy="10.5" r="7.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg>');
+            background-size: contain;
+            pointer-events: none;
+            opacity: 0.7;
         }
-
-        /* Фильтры — горизонтальная прокрутка для телефона, как в приложениях */
-        .filters-wrapper {
-            overflow-x: auto;
-            overflow-y: visible;
-            white-space: nowrap;
-            scrollbar-width: thin;
-            padding-bottom: 8px;
-            margin-bottom: 6px;
-            -webkit-overflow-scrolling: touch;
+        body.dark .search-icon {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%23e4b363" stroke-width="2"><circle cx="10.5" cy="10.5" r="7.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg>');
         }
-
-        .filters {
-            display: inline-flex;
-            gap: 10px;
-            flex-wrap: nowrap;
-            padding: 4px 2px;
-        }
-
-        .filter-btn {
-            padding: 9px 20px;
-            border: none;
-            background: #f1f3fa;
-            color: #2d2f3e;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            transition: 0.2s;
-            cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        body.dark .filter-btn {
-            background: #2c2f48;
-            color: #e2e6ff;
-        }
-
-        .filter-btn.active {
-            background: linear-gradient(105deg, #6d5be0, #ab6fdd);
-            color: white;
-            box-shadow: 0 6px 14px rgba(109, 91, 224, 0.35);
-        }
-
-        .theme-btn {
-            margin-top: 16px;
-            display: inline-flex;
-            width: auto;
-            background: #2c2e44;
-            color: white;
-            border: none;
-        }
-
-        body.dark .theme-btn {
-            background: #f0eefc;
-            color: #1e1f3a;
-        }
-
-        /* СЕТКА ДЛЯ ТЕЛЕФОНА — 2 колонки, комфортный размер */
-        .series-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            margin-bottom: 40px;
-        }
-
-        /* На планшетах и шире — больше колонок */
-        @media (min-width: 560px) {
-            .series-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 20px;
-            }
-        }
-
-        @media (min-width: 920px) {
-            .series-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 26px;
-            }
-        }
-
-        @media (min-width: 1280px) {
-            .series-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
-        }
-
-        /* Карточка — компактная, но с сохранением вертикальных постеров */
-        .series-card {
-            background: rgba(255, 255, 255, 0.97);
-            border-radius: 22px;
-            overflow: hidden;
-            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.3);
-            transition: all 0.25s ease;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            opacity: 0;
-            transform: translateY(20px);
-            backdrop-filter: blur(2px);
-        }
-
-        body.dark .series-card {
-            background: rgba(30, 32, 55, 0.96);
-        }
-
-        .series-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .series-card:active {
-            transform: scale(0.98);
-        }
-
-        /* Постер — адаптивная высота для телефона (2:3 пропорция) */
-        .series-poster {
-            width: 100%;
-            aspect-ratio: 2 / 3;
-            object-fit: cover;
-            background: #252442;
-            transition: filter 0.2s;
-        }
-
-        /* Информация — плотно, но читаемо */
-        .series-info {
-            padding: 14px 12px 16px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .series-title {
-            font-size: 1rem;
-            font-weight: 800;
-            line-height: 1.3;
-            margin-bottom: 6px;
-            color: #0f172a;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        body.dark .series-title {
-            color: #f0f2fc;
-        }
-
-        .series-genre {
-            display: inline-block;
-            background: linear-gradient(95deg, #6b5be0, #b77dee);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            align-self: flex-start;
-            letter-spacing: 0.2px;
-        }
-
-        .series-description {
-            font-size: 0.75rem;
-            line-height: 1.4;
-            color: #36454F;
-            margin-bottom: 12px;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        body.dark .series-description {
-            color: #b9c3db;
-        }
-
-        .series-rating {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 6px;
-            font-weight: 800;
-            font-size: 0.85rem;
-            color: #f6ad55;
-            margin-top: auto;
-        }
-
-        .age-badge {
-            padding: 3px 9px;
-            border-radius: 30px;
-            font-size: 0.65rem;
-            font-weight: bold;
-            color: white;
-        }
-
+        .filters-wrapper { overflow-x: auto; white-space: nowrap; padding-bottom: 8px; }
+        .filters { display: inline-flex; gap: 12px; }
+        .filter-btn { padding: 10px 24px; border: none; background: #f1f3fc; border-radius: 60px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        body.dark .filter-btn { background: #2c2f48; color: #e2e6ff; }
+        .filter-btn.active { background: linear-gradient(105deg, #6d5be0, #ab6fdd); color: white; box-shadow: 0 8px 18px rgba(109,91,224,0.35); }
+        .theme-btn { margin-top: 8px; background: #2c2e44; color: white; }
+        .open-sidebar-btn { background: #F5B041; border: none; padding: 10px 18px; border-radius: 40px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 16px; transition: 0.2s; }
+        .open-sidebar-btn:hover { transform: scale(1.02); background: #e6a017; }
+        .series-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-bottom: 40px; }
+        @media (min-width:560px) { .series-grid { grid-template-columns: repeat(3,1fr); gap:20px; } }
+        @media (min-width:920px) { .series-grid { grid-template-columns: repeat(4,1fr); gap:26px; } }
+        @media (min-width:1280px) { .series-grid { grid-template-columns: repeat(5,1fr); } }
+        .series-card { background: rgba(255,255,255,0.97); border-radius: 28px; overflow: hidden; box-shadow: 0 15px 30px -12px rgba(0,0,0,0.25); transition: all 0.3s; cursor: pointer; opacity: 0; transform: translateY(20px); height: 100%; display: flex; flex-direction: column; }
+        body.dark .series-card { background: rgba(30,32,55,0.96); }
+        .series-card.visible { opacity: 1; transform: translateY(0); }
+        .series-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #252442; transition: transform 0.2s; }
+        .series-card:hover .series-poster { transform: scale(1.02); }
+        .series-info { padding: 14px 12px 12px; flex: 1; display: flex; flex-direction: column; }
+        .series-title { font-size: 1rem; font-weight: 800; margin-bottom: 6px; color: #0f172a; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        body.dark .series-title { color: #f0f2fc; }
+        .series-genre { display: inline-block; background: linear-gradient(95deg,#6b5be0,#b77dee); color: white; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 700; margin-bottom: 10px; align-self: flex-start; }
+        .series-description { font-size: 0.75rem; line-height: 1.45; color: #36454F; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+        body.dark .series-description { color: #b9c3db; }
+        .series-rating { display: flex; justify-content: space-between; font-weight: 800; font-size: 0.8rem; color: #f6ad55; margin-bottom: 12px; }
+        .age-badge { padding: 3px 9px; border-radius: 30px; font-size: 0.65rem; font-weight: bold; color: white; }
         .age-green { background: #2b8c4a; }
         .age-yellow { background: #dc8f1c; }
         .age-red { background: #dc3c3c; }
-        .age-default { background: #5b677b; }
-
-        /* нет результатов */
-        .no-results {
-            grid-column: 1 / -1;
-            text-align: center;
-            color: white;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(12px);
-            padding: 40px 16px;
-            border-radius: 48px;
-            font-size: 1rem;
-        }
-
-        /* Подсказки поиска (мобильный дружелюбно) */
-        .suggestions {
-            position: absolute;
-            width: 100%;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+        
+        /* Кнопки на одном уровне — горизонтальный ряд */
+        .button-row {
+            display: flex;
+            gap: 10px;
             margin-top: 8px;
-            overflow: hidden;
-            z-index: 99;
-        }
-
-        body.dark .suggestions {
-            background: #262a42;
-        }
-
-        .suggestion-item {
-            padding: 12px 18px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-        }
-
-        /* Модалка постера (полный экран) */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.96);
-            backdrop-filter: blur(16px);
-            align-items: center;
-            justify-content: center;
         }
-
-        .modal-content {
-            max-width: 92%;
-            max-height: 85%;
-            border-radius: 24px;
-            object-fit: contain;
-            box-shadow: 0 0 40px rgba(255,255,240,0.2);
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 24px;
-            color: white;
-            font-size: 44px;
-            font-weight: bold;
-            cursor: pointer;
-            background: rgba(0,0,0,0.4);
-            width: 48px;
-            height: 48px;
+        .watch-btn, .fav-btn {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            backdrop-filter: blur(4px);
-        }
-
-        /* кнопка наверх — мобильная */
-        .scroll-top {
-            position: fixed;
-            bottom: 18px;
-            right: 18px;
-            width: 48px;
-            height: 48px;
-            border-radius: 60px;
-            background: #6c5ce7;
-            color: white;
-            font-size: 24px;
+            gap: 6px;
             border: none;
+            border-radius: 44px;
+            padding: 10px 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
             cursor: pointer;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 110;
             transition: 0.2s;
-        }
-
-        .footer {
             text-align: center;
-            color: rgba(255,255,240,0.7);
-            padding: 24px 16px;
-            font-size: 0.7rem;
-            border-top: 1px solid rgba(255,255,255,0.15);
-            margin-top: 20px;
+            white-space: nowrap;
         }
-
-        /* убираем горизонтальный скролл */
-        body {
-            overflow-x: hidden;
+        .watch-btn {
+            background: linear-gradient(105deg, #F5B041, #F39C12);
+            color: #1e2a2f;
+            box-shadow: 0 4px 10px rgba(243,156,18,0.3);
         }
+        .watch-btn:active { transform: scale(0.96); }
+        .fav-btn {
+            background: #2c2f48;
+            color: #FFD966;
+            border: 1px solid #ffb347;
+        }
+        .fav-btn.active {
+            background: #F5B041;
+            color: #1e1f2c;
+            border: none;
+        }
+        .fav-btn:active { transform: scale(0.96); }
+        
+        @media (max-width: 480px) {
+            .watch-btn, .fav-btn { font-size: 0.7rem; padding: 8px 4px; white-space: normal; word-break: keep-all; }
+            .button-row { gap: 6px; }
+        }
+        
+        .scroll-top { position: fixed; bottom: 20px; right: 20px; width: 52px; height: 52px; border-radius: 60px; background: #F5B041; display: none; justify-content: center; align-items: center; cursor: pointer; z-index: 110; font-size: 24px; font-weight: bold; box-shadow: 0 6px 14px rgba(0,0,0,0.3); transition: 0.2s; }
+        .mobile-toast { position: fixed; bottom: 80px; left: 16px; right: 16px; background: #2d2f48e6; backdrop-filter: blur(16px); color: white; text-align: center; padding: 12px; border-radius: 60px; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 1200; font-weight: 600; }
+        .footer { text-align: center; color: rgba(255,255,240,0.7); padding: 24px 16px; margin-top: 20px; font-size: 0.7rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        .modal { display: none; position: fixed; z-index: 2000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.96); align-items: center; justify-content: center; backdrop-filter: blur(12px); }
+        .modal-content { max-width: 90%; max-height: 85%; border-radius: 28px; box-shadow: 0 0 30px rgba(255,200,100,0.4); }
+        .close-modal { position: absolute; top:20px; right:24px; color:white; font-size:44px; cursor: pointer; background: rgba(0,0,0,0.5); width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .close-modal:hover { background: #ff9900; color: #1e1f2c; }
+        .suggestions {
+            position: absolute;
+            width: 100%;
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(16px);
+            border-radius: 32px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+            margin-top: 8px;
+            overflow: hidden;
+            z-index: 99;
+            border: 1px solid #F5B041;
+        }
+        body.dark .suggestions { background: #1b1e32; }
+        .suggestion-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: 0.15s;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            color: #1e293b;
+            font-weight: 500;
+        }
+        body.dark .suggestion-item { color: #eef2ff; border-bottom-color: rgba(255,255,255,0.1); }
+        .suggestion-item:hover { background: #fdf0da; padding-left: 28px; }
+        body.dark .suggestion-item:hover { background: #2d3153; }
+        .no-results { grid-column: 1/-1; text-align: center; color: white; background: rgba(0,0,0,0.5); backdrop-filter: blur(12px); padding: 40px 16px; border-radius: 48px; font-size: 1rem; }
+        @media (max-width: 640px) { .sidebar { width: 280px; } }
     </style>
 </head>
 <body>
-<div id="posterModal" class="modal">
-    <span class="close-modal">&times;</span>
-    <img class="modal-content" id="modalImage" alt="Увеличенный постер">
-</div>
-
-<div class="container">
-    <header>
-        <h1>🎬 Королевство Пижам и Пледов</h1>
-        <p class="subhead">Уютный гид по лучшим сериалам 🛋️⭐</p>
-    </header>
-
-    <div class="search-controls">
-        <div class="search-box">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="10.5" cy="10.5" r="7.5"/>
-                <line x1="21" y1="21" x2="15.8" y2="15.8"/>
-            </svg>
-            <input type="text" class="search-input" id="searchInput" placeholder="Поиск: Атака титанов, Игра престолов...">
-            <div id="suggestions" class="suggestions"></div>
+<div class="app-layout">
+    <!-- Боковая панель (профиль + избранное) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>👤 Мой уголок</h3>
+            <button class="close-sidebar" id="closeSidebarBtn">✕</button>
         </div>
-
-        <div class="filters-wrapper">
-            <div class="filters" id="filters"></div>
+        <div class="profile-area">
+            <div class="avatar-container" id="avatarContainer">
+                <img id="avatarImg" class="avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD966'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="avatar">
+            </div>
+            <label class="upload-label">📸 Загрузить аватар (jpg/png)
+                <input type="file" id="avatarInput" accept="image/jpeg,image/jpg,image/png">
+            </label>
+            <input type="text" id="userNameInput" class="user-name-input" placeholder="Ваше имя" maxlength="30">
         </div>
-
-        <div style="display: flex; justify-content: center; margin-top: 12px;">
-            <button id="themeToggle" class="filter-btn theme-btn">🌙 Тёмная тема</button>
+        <div class="favorites-list">
+            <div class="fav-title">⭐ Избранное <span id="favCount">0</span></div>
+            <div id="favoritesContainer" class="favorites-container">
+                <div class="empty-fav">Нет избранных сериалов</div>
+            </div>
         </div>
     </div>
 
-    <div class="series-grid" id="seriesGrid"></div>
+    <div class="main-content">
+        <div class="container">
+            <header>
+                <h1>🎬 Королевство Пижам и Пледов</h1>
+                <p class="subhead">Уютный гид по лучшим сериалам 🛋️⭐</p>
+            </header>
+            <button id="openSidebarBtn" class="open-sidebar-btn">📋 Моё избранное & Профиль</button>
+            <div class="search-controls">
+                <div class="search-box">
+                    <div class="search-icon"></div>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Найди идеальный сериал...">
+                    <div id="suggestions" class="suggestions" style="display:none;"></div>
+                </div>
+                <div class="filters-wrapper"><div class="filters" id="filters"></div></div>
+                <div style="display: flex; justify-content: center; margin-top: 12px;">
+                    <button id="themeToggle" class="filter-btn theme-btn">🌙 Тёмная тема</button>
+                </div>
+            </div>
+            <div class="series-grid" id="seriesGrid"></div>
+        </div>
+        <footer class="footer"><p>© 2026 Королевство Пижам и Пледов · Избранное сохраняется в браузере</p></footer>
+    </div>
 </div>
-
-<button id="scrollTopBtn" class="scroll-top" aria-label="Наверх">▲</button>
-<footer class="footer">
-    <p>© 2026 Королевство Пижам и Пледов · Все права защищены · Твой идеальный вечер с сериалом</p>
-</footer>
+<button id="scrollTopBtn" class="scroll-top">▲</button>
+<div id="mobileToast" class="mobile-toast"></div>
+<div id="posterModal" class="modal"><span class="close-modal">&times;</span><img class="modal-content" id="modalImage" alt="Постер"></div>
+<div id="youtubeModal" class="modal" style="z-index:2100;"><span class="close-modal" id="closeYoutubeModal">&times;</span><div style="width:90%; max-width:900px; border-radius:28px; overflow:hidden;"><iframe id="youtubeIframe" width="100%" height="400" style="border-radius:24px;" allowfullscreen></iframe></div></div>
 
 <script>
-    // ----- БАЗА СЕРИАЛОВ (с возрастными рейтингами и описанием) -----
+    // ---------- БАЗА ДАННЫХ СЕРИАЛОВ ----------
     const SERIES_DB = [
-        { id: 1, title: "Атака титанов (2013-2023)", genre: "🍙Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", description: "Человечество за стенами, титаны и бунтарь Эрен. Эпичная  драма о свободе.", rating: 9.1, age: "18+" },
-        { id: 2, title: "Во все тяжкие (2008-2013)", genre: "🔎Криминал", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", description: "Учитель химии Уолтер Уайт становится королём наркоимперии. Лучший сериал тысячелетия.", rating: 9.5, age: "18+" },
-        { id: 3, title: "Очень странные дела (2016-2025)", genre: "🎃Ужасы", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", description: "Дети спасают город от монстров из Изнанки. Ностальгия и ужас в идеальных пропорциях.", rating: 8.6, age: "16+" },
-        { id: 4, title: "Игра престолов (2011-2019)", genre: "🏹Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", description: "Борьба за Железный трон, драконы и зима близко. Эпохальное фэнтези.", rating: 9.1, age: "18+" },
-        { id: 5, title: "Острые козырьки (2013-2022)", genre: "🌎Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", description: "Банда Томаса Шелби держит Бирмингем. Стиль, интриги и револьверы.", rating: 8.6, age: "18+" },
-        { id: 6, title: "Звёздные войны: Дарт Мол — Повелитель теней (2026)", genre: "🚀Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", description: "Тёмный ситх возглавляет криминальный мир галактики. Мрачный экшн.", rating: 8.5, age: "18+" },
-        { id: 7, title: "Сорвиголова: Рождённый заново (2025-...)", genre: "🚀Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", description: "Слепой адвокат Мёрдок возвращается с кулаками и суровым правосудием.", rating: 8.2, age: "18+" },
-        { id: 8, title: "Ателье колдовских колпаков (2026)", genre: "🍙Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", description: "Магическая академия, тайны колдовства и юная ученица. Визуальный шедевр.", rating: 8.6, age: "16+" },
-        { id: 9, title: "One Piece. Большой куш (2023-...)", genre: "🌎Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", description: "Луффи и команда пиратов ищут легендарное сокровище. Море юмора и эпичных битв.", rating: 8.7, age: "18+" },
-        { id: 10, title: "Рыцарь семи королевств (2026-...)", genre: "🏹Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", description: "Приквел «Игры престолов» — странствующий рыцарь Дунк и молодой принц.", rating: 8.9, age: "18+" }
+        { id: 1, title: "Атака титанов (2013-2023)", genre: "🍙Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", description: "Человечество за стенами, титаны и бунтарь Эрен.", rating: 9.1, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=6ZiBAgHGTbE&pp=ygUz0LDRgtCw0LrQsCDRgtC40YLQsNC90L7QsiDRgtGA0LXQudC70LXRgCDRhNC40L3QsNC7" },
+        { id: 2, title: "Во все тяжкие (2008-2013)", genre: "🔎Криминал", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", description: "Учитель химии Уолтер Уайт становится королём наркоимперии.", rating: 9.5, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=HhesaQXLuRY" },
+        { id: 3, title: "Очень странные дела (2016-2025)", genre: "🎃Ужасы", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", description: "Дети спасают город от монстров из Изнанки.", rating: 8.6, age: "16+", youtubeUrl: "https://www.youtube.com/watch?v=A4_VW_t95Tc&pp=ygUi0L7RgdC0IDUg0YHQtdC30L7QvSDRgtGA0LXQudC70LXRgNIHCQneCgGHKiGM7w%3D%3D" },
+        { id: 4, title: "Игра престолов (2011-2019)", genre: "🏹Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", description: "Борьба за Железный трон, драконы и зима близко.", rating: 9.1, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=fAOVvJx0Y60&pp=ygU30LjQs9GA0LAg0L_RgNC10YHRgtC-0LvQvtCyIDgg0YHQtdC30L7QvSDRgtGA0LXQudC70LXRgA%3D%3D" },
+        { id: 5, title: "Острые козырьки (2013-2022)", genre: "🌎Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", description: "Банда Томаса Шелби. Стиль и револьверы.", rating: 8.6, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=TiRVTbQyfAw&pp=ygU50L7RgdGC0YDRi9C1INC60L7Qt9GL0YDRjNC60Lgg0YLRgNC10LnQu9C10YAgNiDRgdC10LfQvtC9" },
+        { id: 6, title: "Звёздные войны: Дарт Мол (2026)", genre: "🚀Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", description: "Тёмный ситх возглавляет криминальный мир.", rating: 8.5, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=QlPuT0hry2Y&pp=ygU-0LTQsNGA0YIg0LzQvtC7INC_0L7QstC10LvQuNGC0LXQu9GMINGC0LXQvdC10Lkg0YLRgNC10LnQu9C10YA%3D" },
+        { id: 7, title: "Сорвиголова: Рождённый заново", genre: "🚀Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", description: "Слепой адвокат возвращается с кулаками.", rating: 8.2, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=sBVjIlTjoIk&pp=ygVS0YHQvtGA0LLQuNCz0L7Qu9C-0LLQsCDRgNC-0LbQtNC10L3QvdGL0Lkg0LfQsNC90L7QstC-IDIg0YHQtdC30L7QvSDRgtGA0LXQudC70LXRgA%3D%3D" },
+        { id: 8, title: "Ателье колдовских колпаков (2026)", genre: "🍙Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", description: "Магическая академия, тайны колдовства.", rating: 8.6, age: "16+", youtubeUrl: "https://www.youtube.com/watch?v=hMmBSCQs1H4&pp=ygVB0LDRgtC10LvRjNC1INC60L7Qu9C00L7QstGB0LrQuNGFINC60L7Qu9C_0LDQutC-0LIg0YLRgNC10LnQu9C10YA%3D%3D" },
+        { id: 9, title: "One Piece. Большой куш", genre: "🌎Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", description: "Луффи ищет легендарное сокровище.", rating: 8.7, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=-sKjdYceH04&pp=ygUp0LLQsNC9INC_0LjRgSDRgtGA0LXQudC70LXRgCAyINGB0LXQt9C-0L0%3D" },
+        { id: 10, title: "Рыцарь семи королевств", genre: "🏹Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", description: "Приквел «Игры престолов» — странствующий рыцарь.", rating: 8.9, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=s5_4nCAnclU&pp=ygU50YDRi9GG0LDRgNGMINGB0LXQvNC4INC60L7RgNC-0LvQtdCy0YHRgtCyINGC0YDQtdC50LvQtdGA" }
     ];
-
-    // получаем уникальные жанры
     const allGenres = [...new Set(SERIES_DB.map(s => s.genre))];
 
-    // ---------- КЛАСС ПРИЛОЖЕНИЯ (оптимизированный для тачей) ----------
-    class MobileSeriesApp {
-        constructor() {
-            this.currentGenre = "all";
-            this.searchQuery = "";
-            this.grid = document.getElementById("seriesGrid");
-            this.searchInput = document.getElementById("searchInput");
-            this.suggestionsDiv = document.getElementById("suggestions");
-            this.modal = document.getElementById("posterModal");
-            this.modalImg = document.getElementById("modalImage");
-            this.init();
-        }
-
-        init() {
-            this.renderFilters();
-            this.renderCards();
-            this.attachEvents();
-            this.loadTheme();
-        }
-
-        renderFilters() {
-            const filterContainer = document.getElementById("filters");
-            filterContainer.innerHTML = `<button class="filter-btn active" data-genre="all">📺 Все</button>`;
-            allGenres.forEach(genre => {
-                const btn = document.createElement("button");
-                btn.className = "filter-btn";
-                btn.dataset.genre = genre;
-                btn.textContent = genre;
-                filterContainer.appendChild(btn);
-            });
-        }
-
-        getFilteredSeries() {
-            return SERIES_DB.filter(series => {
-                const genreOk = this.currentGenre === "all" || series.genre === this.currentGenre;
-                const term = this.searchQuery.trim().toLowerCase();
-                const searchOk = !term || series.title.toLowerCase().includes(term) || series.description.toLowerCase().includes(term);
-                return genreOk && searchOk;
-            });
-        }
-
-        renderCards() {
-            const filtered = this.getFilteredSeries();
-            if (filtered.length === 0) {
-                this.grid.innerHTML = `<div class="no-results">🦥 Упс! Ничего не найдено... Попробуй другой жанр или поиск 🫖</div>`;
-                return;
-            }
-
-            this.grid.innerHTML = filtered.map(series => `
-                <div class="series-card" data-id="${series.id}">
-                    <img class="series-poster" src="${series.poster}" alt="${this.escapeHtml(series.title)}" data-high="${series.posterHigh}" loading="lazy">
-                    <div class="series-info">
-                        <h3 class="series-title">${this.escapeHtml(series.title)}</h3>
-                        <span class="series-genre">${series.genre}</span>
-                        <div class="series-description">${this.escapeHtml(series.description)}</div>
-                        <div class="series-rating">
-                            <span>⭐ ${series.rating}</span>
-                            <span class="age-badge ${this.getAgeClass(series.age)}">${series.age || "12+"}</span>
-                        </div>
+    // ---------- ХРАНИЛИЩЕ ИЗБРАННОГО И ПРОФИЛЯ ----------
+    let favorites = JSON.parse(localStorage.getItem("seriesFavorites") || "[]");
+    let userProfile = JSON.parse(localStorage.getItem("userProfile") || '{ "name": "Киноман", "avatar": "" }');
+    
+    function saveFavorites() { localStorage.setItem("seriesFavorites", JSON.stringify(favorites)); updateFavSidebar(); renderCards(); }
+    function saveProfile() { localStorage.setItem("userProfile", JSON.stringify(userProfile)); }
+    
+    function updateFavSidebar() {
+        const container = document.getElementById("favoritesContainer");
+        const favCountSpan = document.getElementById("favCount");
+        if(!container) return;
+        favCountSpan.innerText = favorites.length;
+        if(favorites.length === 0) { container.innerHTML = '<div class="empty-fav">Нет избранных сериалов</div>'; return; }
+        const favItems = favorites.map(id => {
+            const series = SERIES_DB.find(s => s.id === id);
+            if(!series) return null;
+            return `<div class="fav-item" data-id="${series.id}">
+                        <img class="fav-poster-small" src="${series.poster}" alt="">
+                        <div class="fav-info">${escapeHtml(series.title)}<br><span style="font-size:0.7rem;">⭐ ${series.rating}</span></div>
+                        <button class="remove-fav" data-id="${series.id}">🗑️</button>
+                    </div>`;
+        }).filter(v => v).join('');
+        container.innerHTML = favItems;
+        document.querySelectorAll(".fav-item").forEach(el => {
+            const sid = parseInt(el.dataset.id);
+            el.addEventListener("click", (e) => { if(e.target.classList.contains("remove-fav")) return; showSeriesInfo(sid); closeSidebar(); });
+        });
+        document.querySelectorAll(".remove-fav").forEach(btn => {
+            btn.addEventListener("click", (e) => { e.stopPropagation(); const sid = parseInt(btn.dataset.id); removeFromFav(sid); });
+        });
+    }
+    function removeFromFav(id) { favorites = favorites.filter(f => f !== id); saveFavorites(); showToast("❌ Удалено из избранного"); }
+    function addToFav(id) { if(!favorites.includes(id)) { favorites.push(id); saveFavorites(); showToast("⭐ Добавлено в избранное"); } else { removeFromFav(id); } }
+    function isFav(id) { return favorites.includes(id); }
+    function showSeriesInfo(seriesId) { const s = SERIES_DB.find(s => s.id === seriesId); if(s) showToast(`${s.title} · ⭐ ${s.rating}`); }
+    
+    let currentGenre = "all", searchQuery = "";
+    function renderCards() {
+        const filtered = SERIES_DB.filter(s => (currentGenre === "all" || s.genre === currentGenre) && (!searchQuery || s.title.toLowerCase().includes(searchQuery) || s.description.toLowerCase().includes(searchQuery)));
+        const grid = document.getElementById("seriesGrid");
+        if(filtered.length === 0) { grid.innerHTML = `<div class="no-results">🦥 Ничего не найдено...</div>`; return; }
+        grid.innerHTML = filtered.map(series => `
+            <div class="series-card" data-id="${series.id}">
+                <img class="series-poster" src="${series.poster}" data-high="${series.posterHigh}" alt="${escapeHtml(series.title)}" loading="lazy">
+                <div class="series-info">
+                    <h3 class="series-title">${escapeHtml(series.title)}</h3>
+                    <span class="series-genre">${series.genre}</span>
+                    <div class="series-description">${escapeHtml(series.description)}</div>
+                    <div class="series-rating">
+                        <span>⭐ ${series.rating}</span>
+                        <span class="age-badge ${getAgeClass(series.age)}">${series.age}</span>
+                    </div>
+                    <div class="button-row">
+                        <button class="watch-btn" data-url="${series.youtubeUrl}">▶ Трейлер</button>
+                        <button class="fav-btn ${isFav(series.id) ? 'active' : ''}" data-id="${series.id}">${isFav(series.id) ? '❤️ В избранном' : '🤍 В избранное'}</button>
                     </div>
                 </div>
-            `).join("");
-
-            // Плавное появление на мобильных
-            const cards = document.querySelectorAll(".series-card");
-            cards.forEach((card, idx) => {
-                setTimeout(() => card.classList.add("visible"), idx * 40);
-            });
-        }
-
-        escapeHtml(str) {
-            if (!str) return "";
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        getAgeClass(age) {
-            if (!age) return "age-default";
-            if (age.includes("0")) return "age-green";
-            if (age.includes("6") || age.includes("12")) return "age-yellow";
-            if (age.includes("16") || age.includes("18")) return "age-red";
-            return "age-default";
-        }
-
-        updateSearchAndRender() {
-            this.renderCards();
-            this.updateSuggestions();
-        }
-
-        updateSuggestions() {
-            const term = this.searchQuery.trim().toLowerCase();
-            if (!term) {
-                this.suggestionsDiv.style.display = "none";
-                return;
-            }
-            const matches = SERIES_DB.filter(s => s.title.toLowerCase().includes(term)).slice(0, 5);
-            if (matches.length === 0) {
-                this.suggestionsDiv.style.display = "none";
-                return;
-            }
-            this.suggestionsDiv.innerHTML = matches.map(m => `<div class="suggestion-item" data-val="${this.escapeHtml(m.title)}">🔍 ${this.escapeHtml(m.title)}</div>`).join("");
-            this.suggestionsDiv.style.display = "block";
-            document.querySelectorAll(".suggestion-item").forEach(el => {
-                el.addEventListener("click", (e) => {
-                    const val = el.dataset.val || el.innerText.replace("🔍 ", "");
-                    this.searchInput.value = val;
-                    this.searchQuery = val;
-                    this.updateSearchAndRender();
-                    this.suggestionsDiv.style.display = "none";
-                });
-            });
-        }
-
-        attachEvents() {
-            // Поиск с debounce для плавности
-            let debounceTimer;
-            this.searchInput.addEventListener("input", (e) => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    this.searchQuery = e.target.value;
-                    this.updateSearchAndRender();
-                }, 250);
-            });
-
-            // Клик по фильтрам
-            document.getElementById("filters").addEventListener("click", (e) => {
-                const btn = e.target.closest(".filter-btn");
-                if (!btn || !btn.dataset.genre) return;
-                document.querySelectorAll("#filters .filter-btn").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-                this.currentGenre = btn.dataset.genre;
-                this.renderCards();
-            });
-
-            // Клик по карточке (открыть уведомление + увеличение постера)
-            this.grid.addEventListener("click", (e) => {
-                const posterImg = e.target.closest(".series-poster");
-                if (posterImg) {
-                    const highRes = posterImg.dataset.high;
-                    if (highRes) this.openModal(highRes);
-                    return;
-                }
-                const card = e.target.closest(".series-card");
-                if (card) {
-                    const id = card.dataset.id;
-                    const series = SERIES_DB.find(s => s.id == id);
-                    if (series) {
-                        // Краткий всплывающий блок вместо стандартного alert (более мобильно)
-                        this.showQuickToast(`${series.title} · ⭐ ${series.rating} · ${series.age}`);
-                    }
-                }
-            });
-
-            // Закрытие модалки
-            const closeModalBtn = document.querySelector(".close-modal");
-            this.modal.addEventListener("click", (e) => {
-                if (e.target === this.modal || e.target === closeModalBtn) this.closeModal();
-            });
-            document.addEventListener("keydown", (e) => { if (e.key === "Escape") this.closeModal(); });
-
-            // Кнопка скролла
-            const scrollBtn = document.getElementById("scrollTopBtn");
-            window.addEventListener("scroll", () => {
-                scrollBtn.style.display = window.scrollY > 250 ? "flex" : "none";
-            });
-            scrollBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-
-            // Темная тема с сохранением
-            const themeBtn = document.getElementById("themeToggle");
-            themeBtn.addEventListener("click", () => {
-                document.body.classList.toggle("dark");
-                const isDark = document.body.classList.contains("dark");
-                themeBtn.textContent = isDark ? "☀️ Светлая тема" : "🌙 Тёмная тема";
-                localStorage.setItem("seriesTheme", isDark ? "dark" : "light");
-            });
-
-            // Закрыть подсказки при клике вне
-            document.addEventListener("click", (e) => {
-                if (!this.searchInput.contains(e.target) && !this.suggestionsDiv.contains(e.target)) {
-                    this.suggestionsDiv.style.display = "none";
-                }
-            });
-        }
-
-        openModal(src) {
-            this.modalImg.src = src;
-            this.modal.style.display = "flex";
-            document.body.style.overflow = "hidden";
-        }
-
-        closeModal() {
-            this.modal.style.display = "none";
-            document.body.style.overflow = "";
-        }
-
-        showQuickToast(msg) {
-            let toast = document.querySelector(".mobile-toast");
-            if (!toast) {
-                toast = document.createElement("div");
-                toast.className = "mobile-toast";
-                toast.style.cssText = "position:fixed; bottom:80px; left:16px; right:16px; background:#2d2f48e6; backdrop-filter:blur(16px); color:white; text-align:center; padding:12px; border-radius:60px; font-size:0.85rem; font-weight:600; z-index:1000; transition:0.2s; pointer-events:none;";
-                document.body.appendChild(toast);
-            }
-            toast.textContent = msg;
-            toast.style.opacity = "1";
-            setTimeout(() => { toast.style.opacity = "0"; }, 1800);
-        }
-
-        loadTheme() {
-            const saved = localStorage.getItem("seriesTheme");
-            const themeBtn = document.getElementById("themeToggle");
-            if (saved === "dark") {
-                document.body.classList.add("dark");
-                themeBtn.textContent = "☀️ Светлая тема";
-            } else {
-                themeBtn.textContent = "🌙 Тёмная тема";
-            }
-        }
+            </div>
+        `).join("");
+        document.querySelectorAll(".series-card").forEach((c, i) => setTimeout(() => c.classList.add("visible"), i*30));
+        document.querySelectorAll(".watch-btn").forEach(btn => { btn.addEventListener("click", (e) => { e.stopPropagation(); const url = btn.dataset.url; if(url) openYoutube(url); else showToast("Трейлер недоступен"); }); });
+        document.querySelectorAll(".fav-btn").forEach(btn => { btn.addEventListener("click", (e) => { e.stopPropagation(); const sid = parseInt(btn.dataset.id); addToFav(sid); }); });
+        document.querySelectorAll(".series-poster").forEach(img => { img.addEventListener("click", (e) => { e.stopPropagation(); const high = img.dataset.high; if(high) openPosterModal(high); }); });
     }
-
-    // Старт приложения
-    document.addEventListener("DOMContentLoaded", () => new MobileSeriesApp());
+    
+    function openYoutube(url) { let embedUrl = ""; const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/); if(match) embedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`; else embedUrl = `https://www.youtube.com/embed?listType=search&search_query=${encodeURIComponent("трейлер")}`; document.getElementById("youtubeIframe").src = embedUrl; document.getElementById("youtubeModal").style.display = "flex"; document.body.style.overflow = "hidden"; }
+    function openPosterModal(src) { document.getElementById("modalImage").src = src; document.getElementById("posterModal").style.display = "flex"; document.body.style.overflow = "hidden"; }
+    function closeModals() { document.getElementById("posterModal").style.display = "none"; document.getElementById("youtubeModal").style.display = "none"; document.body.style.overflow = ""; document.getElementById("youtubeIframe").src = ""; }
+    
+    function updateSuggestions() {
+        const sugDiv = document.getElementById("suggestions");
+        if(!searchQuery.trim()) { sugDiv.style.display="none"; return; }
+        const matches = SERIES_DB.filter(s=>s.title.toLowerCase().includes(searchQuery)).slice(0,5);
+        if(!matches.length) { sugDiv.style.display="none"; return; }
+        sugDiv.innerHTML = matches.map(m=>`<div class="suggestion-item">${escapeHtml(m.title)}</div>`).join("");
+        sugDiv.style.display="block";
+        document.querySelectorAll(".suggestion-item").forEach(el=>{ el.addEventListener("click",()=>{ document.getElementById("searchInput").value = el.innerText; searchQuery = el.innerText.toLowerCase(); renderCards(); sugDiv.style.display="none"; }); });
+    }
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    function getAgeClass(age) { if(age.includes("0")) return "age-green"; if(age.includes("16")||age.includes("18")) return "age-red"; return "age-yellow"; }
+    
+    // Профиль
+    function initProfile() { 
+        document.getElementById("userNameInput").value = userProfile.name || "Киноман"; 
+        if(userProfile.avatar) document.getElementById("avatarImg").src = userProfile.avatar;
+        document.getElementById("userNameInput").addEventListener("change", (e) => { userProfile.name = e.target.value; saveProfile(); showToast("Имя сохранено"); });
+        document.getElementById("avatarInput").addEventListener("change", (e) => { const file = e.target.files[0]; if(file && (file.type === "image/jpeg" || file.type === "image/jpg" || file.type === "image/png")) { const reader = new FileReader(); reader.onload = (ev) => { const imgData = ev.target.result; userProfile.avatar = imgData; document.getElementById("avatarImg").src = imgData; saveProfile(); showToast("Аватар загружен"); }; reader.readAsDataURL(file); } else showToast("Только JPG/PNG"); }); 
+    }
+    
+    function toggleSidebar(open) { document.getElementById("sidebar").classList.toggle("open", open); }
+    function closeSidebar() { toggleSidebar(false); }
+    
+    // Темы
+    function loadTheme() { const saved = localStorage.getItem("seriesTheme"); if(saved === "dark") { document.body.classList.add("dark"); document.getElementById("themeToggle").textContent = "☀️ Светлая тема"; } else document.getElementById("themeToggle").textContent = "🌙 Тёмная тема"; }
+    document.getElementById("themeToggle")?.addEventListener("click", () => { document.body.classList.toggle("dark"); const isDark = document.body.classList.contains("dark"); localStorage.setItem("seriesTheme", isDark ? "dark" : "light"); document.getElementById("themeToggle").textContent = isDark ? "☀️ Светлая тема" : "🌙 Тёмная тема"; });
+    
+    // Фильтры
+    function renderFilters() { const cont = document.getElementById("filters"); cont.innerHTML = `<button class="filter-btn active" data-genre="all">📺 Все</button>`; allGenres.forEach(g => { const btn = document.createElement("button"); btn.className = "filter-btn"; btn.dataset.genre = g; btn.textContent = g; cont.appendChild(btn); }); }
+    document.getElementById("filters")?.addEventListener("click", (e) => { const btn = e.target.closest(".filter-btn"); if(btn && btn.dataset.genre) { document.querySelectorAll("#filters .filter-btn").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); currentGenre = btn.dataset.genre; renderCards(); } });
+    document.getElementById("searchInput")?.addEventListener("input", (e) => { searchQuery = e.target.value.toLowerCase(); renderCards(); updateSuggestions(); });
+    document.getElementById("openSidebarBtn")?.addEventListener("click", () => toggleSidebar(true));
+    document.getElementById("closeSidebarBtn")?.addEventListener("click", closeSidebar);
+    document.querySelectorAll(".close-modal").forEach(el => el.addEventListener("click", closeModals));
+    window.addEventListener("click", (e) => { if(e.target.classList.contains("modal")) closeModals(); });
+    document.getElementById("scrollTopBtn")?.addEventListener("click", () => window.scrollTo({top:0,behavior:"smooth"}));
+    window.addEventListener("scroll", () => { const btn = document.getElementById("scrollTopBtn"); if(btn) btn.style.display = window.scrollY > 300 ? "flex" : "none"; });
+    function showToast(msg) { const t = document.getElementById("mobileToast"); t.textContent = msg; t.style.opacity = "1"; setTimeout(() => t.style.opacity = "0", 1800); }
+    
+    // Старт
+    renderFilters(); initProfile(); updateFavSidebar(); renderCards(); loadTheme();
+    document.addEventListener("click", (e) => { if(!e.target.closest(".search-box")) document.getElementById("suggestions").style.display = "none"; });
 </script>
 </body>
 </html>
