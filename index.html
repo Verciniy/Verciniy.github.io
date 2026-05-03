@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Королевство Пижам и Пледов — избранное и профиль</title>
+    <link rel="icon" type="image/png" href="image234.png">
     <style>
         * {
             margin: 0;
@@ -29,6 +30,25 @@
             display: flex;
             min-height: 100vh;
             position: relative;
+        }
+
+        /* Оверлей для клика вне панели */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            z-index: 1400;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
 
         /* Боковая панель — профиль и избранное */
@@ -224,13 +244,47 @@
         body.dark .search-icon {
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%23e4b363" stroke-width="2"><circle cx="10.5" cy="10.5" r="7.5"/><line x1="21" y1="21" x2="15.8" y2="15.8"/></svg>');
         }
-        .filters-wrapper { overflow-x: auto; white-space: nowrap; padding-bottom: 8px; }
-        .filters { display: inline-flex; gap: 12px; }
-        .filter-btn { padding: 10px 24px; border: none; background: #f1f3fc; border-radius: 60px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        body.dark .filter-btn { background: #2c2f48; color: #e2e6ff; }
-        .filter-btn.active { background: linear-gradient(105deg, #6d5be0, #ab6fdd); color: white; box-shadow: 0 8px 18px rgba(109,91,224,0.35); }
-        .theme-btn { margin-top: 8px; background: #2c2e44; color: white; }
-        .open-sidebar-btn { background: #F5B041; border: none; padding: 10px 18px; border-radius: 40px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 16px; transition: 0.2s; }
+        .filters-wrapper { overflow-x: auto; white-space: nowrap; padding-bottom: 8px; margin-top: 4px; }
+        .filters { display: inline-flex; gap: 14px; }
+        /* Улучшенные кнопки жанров — яркие, контрастные, приятные */
+        .filter-btn { 
+            padding: 12px 26px; 
+            border: none; 
+            background: linear-gradient(135deg, #2c3e66, #1f2a48);
+            color: #FFE6B0;
+            border-radius: 60px; 
+            font-weight: 700; 
+            font-size: 0.9rem;
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.3px;
+        }
+        body.dark .filter-btn { 
+            background: linear-gradient(135deg, #3a2c4a, #2a1e3c);
+            color: #FFE6B0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 8px 18px rgba(245,176,65,0.3);
+        }
+        .filter-btn.active { 
+            background: linear-gradient(105deg, #F5B041, #FF8C00);
+            color: #1e1f2c;
+            box-shadow: 0 6px 14px rgba(245,176,65,0.5);
+            border: none;
+        }
+        .theme-btn { 
+            background: linear-gradient(135deg, #4a3b5c, #2d2442);
+            color: #FFE6B0;
+            padding: 10px 28px;
+        }
+        .theme-btn:hover {
+            transform: translateY(-1px);
+        }
+        .open-sidebar-btn { background: #F5B041; border: none; padding: 10px 18px; border-radius: 40px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 16px; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
         .open-sidebar-btn:hover { transform: scale(1.02); background: #e6a017; }
         .series-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-bottom: 40px; }
         @media (min-width:560px) { .series-grid { grid-template-columns: repeat(3,1fr); gap:20px; } }
@@ -336,17 +390,20 @@
 </head>
 <body>
 <div class="app-layout">
+    <!-- Оверлей для закрытия по клику вне -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    
     <!-- Боковая панель (профиль + избранное) -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3>👤 Мой уголок</h3>
+            <h3>Мой уголок</h3>
             <button class="close-sidebar" id="closeSidebarBtn">✕</button>
         </div>
         <div class="profile-area">
             <div class="avatar-container" id="avatarContainer">
                 <img id="avatarImg" class="avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD966'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" alt="avatar">
             </div>
-            <label class="upload-label">📸 Загрузить аватар (jpg/png)
+            <label class="upload-label">Загрузить аватар (jpg/png)
                 <input type="file" id="avatarInput" accept="image/jpeg,image/jpg,image/png">
             </label>
             <input type="text" id="userNameInput" class="user-name-input" placeholder="Ваше имя" maxlength="30">
@@ -362,24 +419,24 @@
     <div class="main-content">
         <div class="container">
             <header>
-                <h1>🎬 Королевство Пижам и Пледов</h1>
-                <p class="subhead">Уютный гид по лучшим сериалам 🛋️⭐</p>
+                <h1>Королевство Пижам и Пледов</h1>
+                <p class="subhead">Уютный гид по лучшим сериалам</p>
             </header>
-            <button id="openSidebarBtn" class="open-sidebar-btn">📋 Моё избранное & Профиль</button>
+            <button id="openSidebarBtn" class="open-sidebar-btn">Избранное & Профиль</button>
             <div class="search-controls">
                 <div class="search-box">
                     <div class="search-icon"></div>
-                    <input type="text" class="search-input" id="searchInput" placeholder="Найди идеальный сериал...">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Найти идеальный сериал...">
                     <div id="suggestions" class="suggestions" style="display:none;"></div>
                 </div>
                 <div class="filters-wrapper"><div class="filters" id="filters"></div></div>
-                <div style="display: flex; justify-content: center; margin-top: 12px;">
+                <div style="display: flex; justify-content: center; margin-top: 16px;">
                     <button id="themeToggle" class="filter-btn theme-btn">🌙 Тёмная тема</button>
                 </div>
             </div>
             <div class="series-grid" id="seriesGrid"></div>
         </div>
-        <footer class="footer"><p>© 2026 Королевство Пижам и Пледов · Избранное сохраняется в браузере</p></footer>
+        <footer class="footer"><p>© 2026 Королевство Пижам и Пледов · Все права защищены</p></footer>
     </div>
 </div>
 <button id="scrollTopBtn" class="scroll-top">▲</button>
@@ -390,16 +447,16 @@
 <script>
     // ---------- БАЗА ДАННЫХ СЕРИАЛОВ ----------
     const SERIES_DB = [
-        { id: 1, title: "Атака титанов (2013-2023)", genre: "🍙Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", description: "Человечество за стенами, титаны и бунтарь Эрен.", rating: 9.1, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=6ZiBAgHGTbE&pp=ygUz0LDRgtCw0LrQsCDRgtC40YLQsNC90L7QsiDRgtGA0LXQudC70LXRgCDRhNC40L3QsNC7" },
-        { id: 2, title: "Во все тяжкие (2008-2013)", genre: "🔎Криминал", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", description: "Учитель химии Уолтер Уайт становится королём наркоимперии.", rating: 9.5, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=HhesaQXLuRY" },
-        { id: 3, title: "Очень странные дела (2016-2025)", genre: "🎃Ужасы", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", description: "Дети спасают город от монстров из Изнанки.", rating: 8.6, age: "16+", youtubeUrl: "https://www.youtube.com/watch?v=A4_VW_t95Tc&pp=ygUi0L7RgdC0IDUg0YHQtdC30L7QvSDRgtGA0LXQudC70LXRgNIHCQneCgGHKiGM7w%3D%3D" },
-        { id: 4, title: "Игра престолов (2011-2019)", genre: "🏹Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", description: "Борьба за Железный трон, драконы и зима близко.", rating: 9.1, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=fAOVvJx0Y60&pp=ygU30LjQs9GA0LAg0L_RgNC10YHRgtC-0LvQvtCyIDgg0YHQtdC30L7QvSDRgtGA0LXQudC70LXRgA%3D%3D" },
-        { id: 5, title: "Острые козырьки (2013-2022)", genre: "🌎Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", description: "Банда Томаса Шелби. Стиль и револьверы.", rating: 8.6, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=TiRVTbQyfAw&pp=ygU50L7RgdGC0YDRi9C1INC60L7Qt9GL0YDRjNC60Lgg0YLRgNC10LnQu9C10YAgNiDRgdC10LfQvtC9" },
-        { id: 6, title: "Звёздные войны: Дарт Мол (2026)", genre: "🚀Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", description: "Тёмный ситх возглавляет криминальный мир.", rating: 8.5, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=QlPuT0hry2Y&pp=ygU-0LTQsNGA0YIg0LzQvtC7INC_0L7QstC10LvQuNGC0LXQu9GMINGC0LXQvdC10Lkg0YLRgNC10LnQu9C10YA%3D" },
-        { id: 7, title: "Сорвиголова: Рождённый заново", genre: "🚀Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", description: "Слепой адвокат возвращается с кулаками.", rating: 8.2, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=sBVjIlTjoIk&pp=ygVS0YHQvtGA0LLQuNCz0L7Qu9C-0LLQsCDRgNC-0LbQtNC10L3QvdGL0Lkg0LfQsNC90L7QstC-IDIg0YHQtdC30L7QvSDRgtGA0LXQudC70LXRgA%3D%3D" },
-        { id: 8, title: "Ателье колдовских колпаков (2026)", genre: "🍙Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", description: "Магическая академия, тайны колдовства.", rating: 8.6, age: "16+", youtubeUrl: "https://www.youtube.com/watch?v=hMmBSCQs1H4&pp=ygVB0LDRgtC10LvRjNC1INC60L7Qu9C00L7QstGB0LrQuNGFINC60L7Qu9C_0LDQutC-0LIg0YLRgNC10LnQu9C10YA%3D%3D" },
-        { id: 9, title: "One Piece. Большой куш", genre: "🌎Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", description: "Луффи ищет легендарное сокровище.", rating: 8.7, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=-sKjdYceH04&pp=ygUp0LLQsNC9INC_0LjRgSDRgtGA0LXQudC70LXRgCAyINGB0LXQt9C-0L0%3D" },
-        { id: 10, title: "Рыцарь семи королевств", genre: "🏹Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", description: "Приквел «Игры престолов» — странствующий рыцарь.", rating: 8.9, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=s5_4nCAnclU&pp=ygU50YDRi9GG0LDRgNGMINGB0LXQvNC4INC60L7RgNC-0LvQtdCy0YHRgtCyINGC0YDQtdC50LvQtdGA" }
+        { id: 1, title: "Атака титанов (2013-2023)", genre: "Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1600647/e7b8f305-fdc9-4be7-930e-0b583181b3a7/1920x", description: "Человечество за стенами, титаны и бунтарь Эрен.", rating: 9.1, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=6ZiBAgHGTbE" },
+        { id: 2, title: "Во все тяжкие (2008-2013)", genre: "Криминал", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1773646/2401718d-3f27-4bc1-9fcc-899c3355cd4f/1920x", description: "Учитель химии Уолтер Уайт становится королём наркоимперии.", rating: 9.5, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=HhesaQXLuRY" },
+        { id: 3, title: "Очень странные дела (2016-2025)", genre: "Ужасы", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10953618/fa7b696a-16f3-4ddb-98a1-34f702ed6ac4/1920x", description: "Дети спасают город от монстров из Изнанки.", rating: 8.6, age: "16+", youtubeUrl: "https://www.youtube.com/watch?v=A4_VW_t95Tc" },
+        { id: 4, title: "Игра престолов (2011-2019)", genre: "Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1599028/f745c803-69aa-4b41-a92c-7dc103404d0f/1920x", description: "Борьба за Железный трон, драконы и зима близко.", rating: 9.1, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=fAOVvJx0Y60" },
+        { id: 5, title: "Острые козырьки (2013-2022)", genre: "Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/1946459/0f136244-8e50-4a77-a16d-b87336dd9517/1920x", description: "Банда Томаса Шелби. Стиль и револьверы.", rating: 8.6, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=TiRVTbQyfAw" },
+        { id: 6, title: "Звёздные войны: Дарт Мол (2026)", genre: "Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10812607/4ab857f1-4616-4b62-891b-762ded58a86f/1920x", description: "Тёмный ситх возглавляет криминальный мир.", rating: 8.5, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=QlPuT0hry2Y" },
+        { id: 7, title: "Сорвиголова: Рождённый заново", genre: "Фантастика", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4716873/90ecb009-9bc4-4d17-8907-7d18e3857a30/1920x", description: "Слепой адвокат возвращается с кулаками.", rating: 8.2, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=sBVjIlTjoIk" },
+        { id: 8, title: "Ателье колдовских колпаков (2026)", genre: "Аниме", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10809116/8397a45a-fe7e-421e-a5a9-201022204d85/1920x", description: "Магическая академия, тайны колдовства.", rating: 8.6, age: "16+", youtubeUrl: "https://www.youtube.com/watch?v=hMmBSCQs1H4" },
+        { id: 9, title: "One Piece. Большой куш", genre: "Приключения", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/10835644/4c94adbe-66d3-44b9-9a27-18eb522fc2fd/1920x", description: "Луффи ищет легендарное сокровище.", rating: 8.7, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=-sKjdYceH04" },
+        { id: 10, title: "Рыцарь семи королевств", genre: "Фэнтези", poster: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", posterHigh: "https://avatars.mds.yandex.net/get-kinopoisk-image/4486362/5afb0488-360f-4e4a-b3a6-0116341b7ea6/1920x", description: "Приквел «Игры престолов» — странствующий рыцарь.", rating: 8.9, age: "18+", youtubeUrl: "https://www.youtube.com/watch?v=s5_4nCAnclU" }
     ];
     const allGenres = [...new Set(SERIES_DB.map(s => s.genre))];
 
@@ -420,7 +477,7 @@
             const series = SERIES_DB.find(s => s.id === id);
             if(!series) return null;
             return `<div class="fav-item" data-id="${series.id}">
-                        <img class="fav-poster-small" src="${series.poster}" alt="">
+                        <img class="fav-poster-small" src="${series.poster}" alt="" loading="lazy">
                         <div class="fav-info">${escapeHtml(series.title)}<br><span style="font-size:0.7rem;">⭐ ${series.rating}</span></div>
                         <button class="remove-fav" data-id="${series.id}">🗑️</button>
                     </div>`;
@@ -464,13 +521,22 @@
         `).join("");
         document.querySelectorAll(".series-card").forEach((c, i) => setTimeout(() => c.classList.add("visible"), i*30));
         document.querySelectorAll(".watch-btn").forEach(btn => { btn.addEventListener("click", (e) => { e.stopPropagation(); const url = btn.dataset.url; if(url) openYoutube(url); else showToast("Трейлер недоступен"); }); });
-        document.querySelectorAll(".fav-btn").forEach(btn => { btn.addEventListener("click", (e) => { e.stopPropagation(); const sid = parseInt(btn.dataset.id); addToFav(sid); }); });
+        document.querySelectorAll(".fav-btn").forEach(btn => { btn.addEventListener("click", (e) => { e.stopPropagation(); const sid = parseInt(btn.dataset.id); addToFav(sid); renderCards(); }); });
         document.querySelectorAll(".series-poster").forEach(img => { img.addEventListener("click", (e) => { e.stopPropagation(); const high = img.dataset.high; if(high) openPosterModal(high); }); });
     }
     
-    function openYoutube(url) { let embedUrl = ""; const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/); if(match) embedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`; else embedUrl = `https://www.youtube.com/embed?listType=search&search_query=${encodeURIComponent("трейлер")}`; document.getElementById("youtubeIframe").src = embedUrl; document.getElementById("youtubeModal").style.display = "flex"; document.body.style.overflow = "hidden"; }
+    function openYoutube(url) { 
+        let embedUrl = ""; 
+        const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/); 
+        if(match) embedUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1`; 
+        else embedUrl = `https://www.youtube.com/embed?listType=search&search_query=${encodeURIComponent("трейлер сериала")}`; 
+        const iframe = document.getElementById("youtubeIframe");
+        if(iframe) iframe.src = embedUrl;
+        document.getElementById("youtubeModal").style.display = "flex"; 
+        document.body.style.overflow = "hidden"; 
+    }
     function openPosterModal(src) { document.getElementById("modalImage").src = src; document.getElementById("posterModal").style.display = "flex"; document.body.style.overflow = "hidden"; }
-    function closeModals() { document.getElementById("posterModal").style.display = "none"; document.getElementById("youtubeModal").style.display = "none"; document.body.style.overflow = ""; document.getElementById("youtubeIframe").src = ""; }
+    function closeModals() { document.getElementById("posterModal").style.display = "none"; document.getElementById("youtubeModal").style.display = "none"; document.body.style.overflow = ""; const iframe = document.getElementById("youtubeIframe"); if(iframe) iframe.src = ""; }
     
     function updateSuggestions() {
         const sugDiv = document.getElementById("suggestions");
@@ -492,7 +558,19 @@
         document.getElementById("avatarInput").addEventListener("change", (e) => { const file = e.target.files[0]; if(file && (file.type === "image/jpeg" || file.type === "image/jpg" || file.type === "image/png")) { const reader = new FileReader(); reader.onload = (ev) => { const imgData = ev.target.result; userProfile.avatar = imgData; document.getElementById("avatarImg").src = imgData; saveProfile(); showToast("Аватар загружен"); }; reader.readAsDataURL(file); } else showToast("Только JPG/PNG"); }); 
     }
     
-    function toggleSidebar(open) { document.getElementById("sidebar").classList.toggle("open", open); }
+    function toggleSidebar(open) { 
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebarOverlay");
+        if(open) {
+            sidebar.classList.add("open");
+            overlay.classList.add("active");
+            document.body.style.overflow = "hidden";
+        } else {
+            sidebar.classList.remove("open");
+            overlay.classList.remove("active");
+            document.body.style.overflow = "";
+        }
+    }
     function closeSidebar() { toggleSidebar(false); }
     
     // Темы
@@ -505,6 +583,7 @@
     document.getElementById("searchInput")?.addEventListener("input", (e) => { searchQuery = e.target.value.toLowerCase(); renderCards(); updateSuggestions(); });
     document.getElementById("openSidebarBtn")?.addEventListener("click", () => toggleSidebar(true));
     document.getElementById("closeSidebarBtn")?.addEventListener("click", closeSidebar);
+    document.getElementById("sidebarOverlay")?.addEventListener("click", closeSidebar);
     document.querySelectorAll(".close-modal").forEach(el => el.addEventListener("click", closeModals));
     window.addEventListener("click", (e) => { if(e.target.classList.contains("modal")) closeModals(); });
     document.getElementById("scrollTopBtn")?.addEventListener("click", () => window.scrollTo({top:0,behavior:"smooth"}));
